@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'quiz_brain.dart';
-
-void main() => runApp(BiancaQuiz());
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 QuizBrain quizBrain = QuizBrain();
+
+void main() => runApp(BiancaQuiz());
 
 class BiancaQuiz extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.blue.shade800,
+          title: Text(
+            'Bianca\'s Quiz',
+            style: TextStyle(fontSize: 20.0, color: Colors.white),
+          ),
+        ),
         backgroundColor: Colors.blue.shade900,
         body: SafeArea(
           child: Padding(
@@ -30,18 +38,53 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   List<Icon> scoreKeeper = [];
 
+  void checkEnd() {
+    if (quizBrain.isFinished() == true) {
+      Alert(
+        context: context,
+        type: AlertType.info,
+        title: 'O QUIZ CHEGOU AO FIM',
+        desc:
+            'Sua pontuação foi: ${quizBrain.getPoints()}/${quizBrain.getLength()}',
+        buttons: [
+          DialogButton(
+            width: 200.0,
+            child: Text(
+              "JOGAR NOVAMENTE",
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              setState(
+                () {
+                  quizBrain.resetQuestionNumber();
+                  scoreKeeper.clear();
+                  quizBrain.clearPoints();
+                },
+              );
+            },
+          ),
+        ],
+      ).show();
+    } else {
+      quizBrain.nextQuestion();
+    }
+  }
+
   void checkAnswer(bool userPickedAnswer) {
     bool correctAnswer = quizBrain.getCorrectAnswer();
 
-    setState(() {
-      if (userPickedAnswer == correctAnswer) {
-        scoreKeeper.add(Icon(Icons.check, color: Colors.green));
-      } else {
-        scoreKeeper.add(Icon(Icons.close, color: Colors.red));
-      }
-
-      quizBrain.nextQuestion();
-    });
+    setState(
+      () {
+        if (userPickedAnswer == correctAnswer) {
+          scoreKeeper.add(Icon(Icons.check, color: Colors.green));
+          quizBrain.setPoints();
+        } else {
+          scoreKeeper.add(Icon(Icons.close, color: Colors.red));
+        }
+        checkEnd();
+      },
+    );
   }
 
   @override
